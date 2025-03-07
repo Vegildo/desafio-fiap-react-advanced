@@ -1,22 +1,36 @@
-import { render, fireEvent, wait } from "react-testing-library";
+import React from 'react';
+import { render, fireEvent, waitFor } from '@testing-library/react';
+import { CartProvider, useCartContext } from './CartContext';
 
-import { CartProvider } from "./CartContext";
-import Cart from "./Cart";
+describe('CartContext', () => {
+  it('adiciona um produto ao carrinho', async () => {
+    const product = { id: 1, name: 'Produto 1', price: 10.99 };
 
-// criar um test de Adicionar ao carrinho: verifique se um produto é corretamente adicionado ao carrinho quando a função addToCart é chamada. Utilize o vitest e react-testing-library para escrever o teste.
+    const { getByText, getByTestId } = render(
+      <CartProvider>
+        <TestComponent />
+      </CartProvider>
+    );
 
-test("Adicionar ao carrinho", async () => {
-  const { getByTestId, getByText } = render(
-    <CartProvider>
-      <Cart />
-    </CartProvider>
-  );
+    const addButton = getByTestId('add-to-cart');
 
-  await wait(() => {
-    fireEvent.click(getByTestId("add-to-cart"));
+    fireEvent.click(addButton);
+
+    await waitFor(() => {
+      const cartList = getByTestId('cart-list');
+      expect(cartList).toContainElement(getByText(product.name));
+    });
   });
-
-  expect(getByText("R$ 79,99")).toBeInTheDocument();
+  
 });
 
 
+const TestComponent = () => {
+  const { addToCart } = useCartContext();
+
+  return (
+    <button onClick={() => addToCart({ id: 1, name: 'Produto 1', price: 10.99 })}>
+      Adicionar ao carrinho
+    </button>
+  );
+};
